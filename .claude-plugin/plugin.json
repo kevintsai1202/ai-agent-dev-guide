@@ -1,0 +1,9 @@
+{
+  "name": "ai-agent-dev-guide",
+  "description": "AI agent application development skill suite: a routing entry-point skill, pluggable backend framework skills (currently Embabel — GOAP / @Agent / JVM), and a backend-agnostic generative-UI frontend (LLM-generated dynamic dashboards, SSE streaming, progressive rendering).",
+  "version": "0.1.0",
+  "author": {
+    "name": "kevintsai",
+    "email": "kevintsai1202@gmail.com"
+  }
+}

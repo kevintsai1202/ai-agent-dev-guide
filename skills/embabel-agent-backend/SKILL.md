@@ -1,0 +1,140 @@
+---
+name: embabel-agent-backend
+description: "Use when building, reviewing, or refactoring Embabel + Spring AI JVM agent applications, especially Spring Boot 3.5.x / Java 21 projects that need GOAP planning, @Agent/@Action type-driven flows, Blackboard state, domain @Tool methods, MCP or Agentic RAG integration, prompt testing, observability, production-ready guardrails, @State loops/human-in-the-loop, @Condition boolean gates, Agentic/Progressive tools, streaming output, LLM cost tracking, budget guardrails, MCP server publishing, or concurrent execution. Note: released Embabel (<= 0.4.0) does not run on Spring Boot 4; Boot 4 support arrives with Embabel 2.0 (Spring AI 2.0)."
+---
+
+# Embabel + Spring AI Development
+
+Use this skill to turn a business process into a testable Embabel agent on the JVM. The source model is the `learn-embabel` course: start from engineering boundaries, model the flow with GOAP, implement it as Java records and annotated actions, wire Spring Boot + Spring AI infrastructure, then verify prompts, tools, and operations.
+
+> **Not sure where to start?** The entry point and routing for the entire AI Agent Dev suite is in **`ai-agent-dev-guide`** (which includes the routing table and the full-stack build order). This skill focuses on the backend agent/GOAP/JVM side.
+>
+> **Pairing with the frontend skill**: When this Embabel backend needs a dynamic frontend built around "natural language → agent-generated UI spec → progressive frontend rendering" (json-render / SSE streaming / progress-and-cost observability panel / click-to-drill-down / component catalog maintenance), use the companion skill **`json-render-ui`**. This skill covers the agent/GOAP/JVM; that one covers the frontend/backend UI contract, streaming rendering, and interaction.
+
+## Source-First Rule
+
+Before writing code:
+
+1. Read the local product/spec files for the target project.
+2. If this repo is available, use these source files as the compact reference:
+   - `source/course-package/overview.md`
+   - `source/course-package/day1/outline.md`
+   - `source/course-package/day1/content.md`
+   - `teaching-site/course-data.js`
+   - `teaching-site/course-package/materials/CustomerCareAgent.java`
+3. Confirm the implementation understanding with the developer in concrete terms: target workflow, input/output domain records, terminal goal, model/tool boundaries, and tests.
+4. Verify current Embabel, Spring AI, and Spring Boot versions from the project's docs or build files before pinning dependencies. Do not invent versions.
+
+## Version Compatibility (verified 2026-06-12)
+
+- Released Embabel (latest **0.4.0**, Maven Central since 0.2.0) is built on **Spring Boot 3.5.x + Spring AI 1.1.x** (transitively included; do not add a Spring AI BOM yourself).
+- **Spring Boot 4 is NOT supported**: compile passes but context startup fails with `NoSuchMethodError: HttpHeaders.addAll(...)` (Spring AI 1.1.x vs Spring Framework 7). Overriding Spring AI to 2.0 milestones/RCs also fails (`OpenAiApi` / `Builder.retryTemplate` removed).
+- Boot 4 support is scheduled for **Embabel 2.0.0** (tracking issue embabel/embabel-agent#1052, waiting on Spring AI 2.0 GA). Until then, pin Spring Boot 3.5.x.
+- Check latest versions at `https://repo1.maven.org/maven2/com/embabel/agent/embabel-agent-starter/maven-metadata.xml`.
+
+## Development Workflow
+
+### Prerequisite Check (shortcut)
+
+If the target project **already contains `embabel-agent-starter`** in its build file (pom.xml or build.gradle):
+
+- **Skip step 1** (Fit Assessment) — the decision to use Embabel has already been made.
+- **Skip step 5** (Spring Boot + Spring AI Wiring) — starter and model provider are already configured.
+- Start directly from **step 2 (GOAP Modeling)**.
+- Only run step 1 if the user explicitly asks to re-evaluate whether Embabel is the right fit.
+
+If the project does **not** have the Embabel starter, verify that the scenario genuinely needs Embabel (step 1) before proceeding.
+
+Follow this order unless the user explicitly asks for a narrower review:
+
+1. **Decide if Embabel is appropriate.**
+   Use Embabel when the workflow has multiple steps, typed business objects, conditions, review gates, or auditability needs. Use plain Spring AI when it is a single model call or a fixed pipeline.
+
+2. **Model the workflow with GOAP — design at least two goals.**
+   Create an action table with `Action`, `Preconditions`, `Postconditions`, executor type, failure path, and terminal goal. **Always design two `@AchievesGoal`: one normal-completion goal and one safe-failure goal** (e.g. `EscalationTicket`). Without a safe-failure exit, missing data or all-paths-failed leaves the planner with no reachable goal → STUCK or infinite replanning. For fallback / different-performance paths, make success and failure produce **different types** and use `@Action(cost=...)` / `@Cost` so the planner prefers the cheap main path and reroutes on failure. See `references/patterns-and-templates.md` → "Multi-Action design patterns (fallback / different performance / safe exit)".
+
+3. **Define Java data boundaries.**
+   Use records or domain classes for all Blackboard facts. Avoid `Map<String,Object>` and magic string keys.
+
+4. **Implement the agent surface.**
+   Use `@Agent`, `@Action`, and `@AchievesGoal`. Method input types are preconditions; return types are postconditions.
+
+5. **Wire Spring Boot and Spring AI.**
+   Add Embabel starters and a model-provider starter; auto-configuration enables agent scanning (`@EnableAgents` is **not** required — see "Setup Essentials"). Add `@ConfigurationProperties` for business thresholds and model choices.
+
+6. **Attach tools deliberately.**
+   Prefer domain-object `@Tool` for calculations on existing business objects. Use MCP for cross-application reusable tools. Use Agentic RAG / `ToolishRag` for document search where the LLM should decide how to search.
+
+7. **Test the flow before declaring done.**
+   Test pure actions with normal unit tests. Test LLM actions by checking prompt construction, model role, exposed tools, and guardrails. Add an integration test for `input -> goal output`.
+
+8. **Add observability and failure handling.**
+   Record action execution, LLM call metadata, tool invocation, token/cost where available, failure reason, and audit IDs.
+
+For the full step-by-step checklist, read `references/development-workflow.md`.
+
+## What To Read When
+
+- Read `references/development-workflow.md` when designing or implementing a new Embabel agent.
+- Read `references/patterns-and-templates.md` when generating Java records, `@Agent` classes, `application.yml`, Maven snippets, or AI assistant prompts.
+- Read `references/testing-and-troubleshooting.md` when adding tests, reviewing reliability, or debugging a stuck plan.
+- Read `references/conditions-and-guardrails.md` when an action needs boolean preconditions (`@Condition`, SpEL) or when adding input/output validation guardrails to LLM calls.
+- Read `references/states-and-loops.md` when the workflow has looping, branching, human-in-the-loop (`WaitFor`), or state-machine patterns (`@State`).
+- Read `references/advanced-features.md` when:
+  - You need **Embabel Shell** commands for interactive testing and debugging.
+  - An action should fire only on a **specific event** (not just parameter availability) → `trigger` / Reactive Triggers.
+  - Agents exposed as **MCP tools need security** → `@SecureAgentTool`.
+  - A tool itself needs to **orchestrate sub-tools via LLM** → Agentic Tools (`SimpleAgenticTool`, `PlaybookTool`, `StateMachineTool`).
+  - Too many tools overwhelm the LLM and you need **progressive disclosure** → `UnfoldingTool`.
+  - Complex prompts require **template management** → Jinja Templates (`rendering()`).
+  - Independent sub-tasks should run in **parallel** → `ConcurrentAgentProcess`.
+  - The UI needs **streaming output** from the LLM → `StreamingPromptRunnerBuilder`.
+  - You need to **inspect LLM reasoning** or validate thinking → `ThinkingResponse` / `ThinkingBlock`.
+  - You need to **monitor, log, or transform** LLM/tool interactions → Tool Loop Callbacks / Interceptors.
+  - You need to **track LLM cost** or enforce a **budget guardrail** → Cost Tracking / `AgenticEventListener`.
+  - You need to **publish agents as MCP servers** or integrate with external systems → MCP Publishing / A2A.
+  - You need to **stream GOAP step progress to a UI (SSE)** → §13 Real-time Progress Observability (note: plan/action events only flow through the global listener, not per-call listeners).
+  - A **compound / cross-domain query** should trigger **multiple agents and fuse** results → §14 Multi-Agent Orchestration (`chooseAndRunAgent` vs `runAgent(input,opts,agent)`; use distinct output types when fusing to avoid ambiguity).
+  - Charts/data must **adapt to query intent** (this-vs-last month, filter by tier/priority) → §15 Intent Parameterization (LLM extracts structured parameters + Java applies deterministic filtering).
+
+## Setup Essentials (verified against the official template — required vs not needed)
+
+Cross-check against [embabel/java-agent-template](https://github.com/embabel/java-agent-template) to avoid redundant annotations and STUCK traps. See `references/patterns-and-templates.md` for the full table and STUCK troubleshooting.
+
+**✅ Required:**
+
+- App class: `@SpringBootApplication` (sufficient on its own; auto-config scans agents automatically)
+- Agent class: `@Agent(description=...)` (itself a Spring stereotype)
+- LLM calls: `Ai` as an `@Action` parameter, using `ai.withDefaultLlm().creating(T.class).fromPrompt(...)` or `.generateText(...)`
+- Controller calls: `AgentInvocation.builder(platform).build(T.class).invoke(domainObject)`
+
+**❌ Not needed / will break:**
+
+- Adding `@EnableAgents` on the app (not required in 0.4.x; only for advanced configuration)
+- Adding `@Component` on the agent (`@Agent` is already a stereotype; redundant)
+- Using Spring AI `ChatClient` (no `ChatModel` bean exists → `UnsatisfiedDependencyException`; always go through `Ai`)
+- `runAgentFrom(agent, opts, Map.of(...))` (a Map does not create typed facts → STUCK)
+- `process.start(p).join()` (the future never completes when stuck → infinite wait; use `AgentInvocation` instead)
+
+## Hard Rules
+
+- Keep LLM reasoning local to actions; do not let the LLM own the full business workflow.
+- Keep action signatures type-driven; the planner cannot reason over hidden map keys.
+- Put numeric calculations, policy thresholds, and permission checks in Java code or domain tools, not in prompt text.
+- Expose the minimum tools needed for each LLM call.
+- Put business thresholds in configuration, not hard-coded prompt strings.
+- Add Chinese function-level comments when generating project code for this user's workspace, unless the target project has a stronger local convention.
+- Do not call an implementation complete until build/test commands or equivalent project verification have run.
+
+## Output Shape
+
+When asked to design or implement, produce these artifacts as appropriate:
+
+- `GOAP action table`
+- domain records/classes
+- `@Agent` class with `@Action` methods
+- Spring Boot dependency/config notes
+- tool exposure plan
+- test checklist and runnable tests
+- observability/audit checklist
+- version-compatibility notes and unresolved assumptions

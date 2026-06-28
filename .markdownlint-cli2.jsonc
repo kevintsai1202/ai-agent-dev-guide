@@ -1,0 +1,9 @@
+{
+  // Markdown lint config for the Embabel skill suite docs.
+  "config": {
+    "MD013": false,                    // line-length: not meaningful for prose-heavy skill docs
+    "MD041": false,                    // allow a language-switcher nav line before the H1 in READMEs
+    "MD024": { "siblings_only": true }, // allow repeated sub-headings under different parents
+    "MD060": { "style": "padded" }      // normalize tables to "| cell |" padded style
+  }
+}

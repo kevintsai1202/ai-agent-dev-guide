@@ -1,0 +1,22 @@
+{
+  "name": "ai-agent-dev-guide",
+  "version": "0.1.0",
+  "description": "Marketplace for the AI Agent Dev skill suite.",
+  "owner": {
+    "name": "kevintsai",
+    "email": "kevintsai1202@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "ai-agent-dev-guide",
+      "source": "./",
+      "description": "AI agent development skills: routing entry-point (ai-agent-dev-guide), backend agent framework (embabel-agent-backend — Embabel / GOAP / JVM), and backend-agnostic generative UI frontend (json-render-ui).",
+      "strict": false,
+      "skills": [
+        "./skills/ai-agent-dev-guide",
+        "./skills/embabel-agent-backend",
+        "./skills/json-render-ui"
+      ]
+    }
+  ]
+}
