@@ -131,8 +131,8 @@ Do not split into subagents unless the sub-workflow is reused or has its own GOA
 Minimum implementation concerns:
 
 - Java 21+ for the course target; verify the actual project requirement.
-- Use **Spring Boot 3.5.x** with `spring-boot-starter-web`. Released Embabel (<= 0.4.0) does not run on Spring Boot 4 (binary-incompatible with Spring Framework 7; startup fails with `NoSuchMethodError: HttpHeaders.addAll`). Boot 4 support arrives with Embabel 2.0 (issue embabel/embabel-agent#1052). `spring-boot-starter-webmvc` is the Boot 4-era name — only relevant after that upgrade.
-- Add Embabel agent starter and model-provider starter. Spring AI comes in transitively from Embabel; do not add your own Spring AI BOM (version-conflict risk).
+- Pick one line and stay on it: **Spring Boot 4.1.x + Embabel 1.5.x** (web starter is now `spring-boot-starter-webmvc`), or **Spring Boot 3.5.x + Embabel 1.0.x** (`spring-boot-starter-web`). Mixing Boot 4 with an Embabel 1.0.x/0.x artifact still fails at context startup (`NoSuchMethodError: HttpHeaders.addAll`).
+- Add Embabel agent starter and model-provider starter. Spring AI comes in transitively from Embabel (2.0.x on the 1.5.x line, 1.1.x on the 1.0.x line); do not add your own Spring AI BOM (version-conflict risk).
 - Add `@EnableAgents` on the application entry point.
 - Put API keys in environment variables.
 - Put thresholds and model choices in `@ConfigurationProperties`.

@@ -526,7 +526,7 @@ public class RagMcpTools {
 
 Push the agent's execution progress to the front end in real time (showing "current step / total steps / path / elapsed time").
 
-**Key field-test conclusions (Embabel 0.4.0):**
+**Key field-test conclusions (Embabel 0.4.0; re-verify against 1.5.x before relying on exact signatures):**
 
 | Event Type | per-call listener (`ProcessOptions.withListener`) | Global listener (`@Component implements AgenticEventListener`) |
 |---|---|---|

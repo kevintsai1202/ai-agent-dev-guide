@@ -1,18 +1,19 @@
 ---
 name: ai-agent-dev-guide
-description: "Use when starting, scoping, or reviewing any AI agent application — backend agent logic and/or an LLM-generates-UI frontend — and you are not yet sure which skill to open. This is the entry-point / router for the AI Agent Dev suite. It dispatches to backend framework skills (currently Embabel via embabel-agent-backend — GOAP / @Agent / @Action / Spring AI / JVM) and to the backend-agnostic generative-UI frontend (json-render-ui — LLM-produced JSON UI spec, SSE streaming, progressive rendering), and defines the recommended full-stack build order. Triggers: building an AI agent backend, a dynamic LLM-generated dashboard, SSE streaming of agent progress, or work spanning both backend and frontend."
+description: "Use when starting, scoping, or reviewing any AI agent application — backend agent logic and/or an LLM-generates-UI frontend — and you are not yet sure which skill to open. This is the entry-point / router for the AI Agent Dev suite. It dispatches to backend framework skills (currently Embabel via embabel-agent-backend — GOAP / @Agent / @Action / Spring AI / JVM) to the backend-agnostic generative-UI frontend (json-render-ui — LLM-produced JSON UI spec, SSE streaming, progressive rendering), and to the agent-facing layer (webmcp-development-guide — exposing your page's capabilities as WebMCP tools an external Agent such as ChatGPT or Chrome can call), and defines the recommended full-stack build order. Triggers: building an AI agent backend, a dynamic LLM-generated dashboard, SSE streaming of agent progress, letting an external Agent operate your site, or work spanning several of these."
 ---
 
 # AI Agent Dev Guide (suite overview / router)
 
 This is the **entry point for the AI Agent Dev suite**. When you want to build an AI agent application but aren't yet sure which skill to open, start here to decide the angle, then move on to the matching skill. This skill **only points the way and defines the full-stack build order**; all implementation details live in the domain skills.
 
-The suite splits into two domains:
+The suite splits into three domains:
 
 - **Backend** — agentic backend logic. Current framework: **Embabel** (`embabel-agent-backend`). Designed so additional frameworks can be added later as sibling `*-agent-backend` skills.
 - **Frontend** — **`json-render-ui`**: a backend-agnostic, LLM-generates-UI generative rendering frontend. Usable on its own with any backend that meets its Backend Contract.
+- **Agent-facing** — **`webmcp-development-guide`**: exposing your page's capabilities as WebMCP tools so an **external** Agent (ChatGPT Site tools, Chrome 149+) can call them. Note the direction: the first two domains build _your_ agent; this one makes your site a tool provider _for someone else's_. Optional, and additive to either.
 
-Evidence sources: the `learn-embabel` course (backend) plus the `embabel-json-render` POC (frontend). Version baseline (Embabel backend): Spring Boot 3.5.x + Embabel 0.4.0 + Spring AI 1.1.x (**Boot 4 is not yet supported — wait for Embabel 2.0**; see the backend skill for details).
+Evidence sources: the `learn-embabel` course (backend) plus the `embabel-json-render` POC (frontend). Version baseline (Embabel backend): Spring Boot 4.1.x + Embabel 1.5.1 + Spring AI 2.0.x (**Boot 4 is supported since Embabel 1.5.0**; Boot 3.5.x projects stay on Embabel 1.0.x — see the backend skill for details).
 
 ## Routing table
 
@@ -27,6 +28,8 @@ Evidence sources: the `learn-embabel` course (backend) plus the `embabel-json-re
 | json-render flat element-tree spec contract, component catalog ↔ frontend registry reconciliation | **json-render-ui** |
 | SSE streaming (`fetch` + `ReadableStream`), `lenientParse`/`sanitize` fault-tolerant progressive rendering | **json-render-ui** |
 | Backend step-progress / cost observability panel, click-to-drill-down, catalog maintenance page | **json-render-ui** |
+| Letting an external Agent (ChatGPT Site tools / Chrome 149+) discover and call your page's capabilities; `document.modelContext`, Imperative vs Declarative, tool schemas, Inspector/Evals | **webmcp-development-guide** |
+| Exposing an **LLM-generated** dashboard to an external Agent — the tool set has to track a screen that is regenerated every request | **webmcp-development-guide** (`references/generative-ui-integration.md`) + **json-render-ui** |
 
 ## Backend frameworks
 
@@ -53,6 +56,7 @@ Backend only → use your backend framework skill (currently `embabel-agent-back
 2. **Nail down the frontend/backend spec contract** (`json-render-ui`): backend `{root, elements}` spec (▼ Embabel: a `DashboardSpec(root, elements)` record) ↔ frontend `Spec` type — lock the flat element-tree shape first.
 3. **Wire SSE streaming + progressive rendering** (`json-render-ui`): backend opens SSE (▼ Embabel: `SseEmitter`); frontend `fetch`+`ReadableStream`, `lenientParse → sanitize → progressive setSpec`.
 4. **Observability and interaction** (`json-render-ui`): step-progress + cost panel (▼ Embabel: GOAP plan/step), click-to-drill-down, catalog maintenance page.
+5. **Ask about the agent-facing layer** (`webmcp-development-guide`, optional): with a working dashboard in front of the user, ask whether an external Agent should be able to operate it too. Ask here rather than up front — before a screen exists, nobody can judge which capabilities are worth exposing as tools. If yes, start from `references/generative-ui-integration.md`.
 
 > Cross-skill iron rules at a glance (details in the domain skills): **data arrays are always assembled deterministically into the spec by backend code, never produced by the LLM** (which drops items → empty table, breaks the JSON, tampers with numbers); the LLM only touches narrative text. **(Embabel) GOAP plan/action lifecycle events only go through the global listener**, not a per-call listener.
 
@@ -62,5 +66,6 @@ Backend only → use your backend framework skill (currently `embabel-agent-back
 | ---- | ---------- |
 | Agent / GOAP / tools / backend orchestration and observability (Embabel) | **embabel-agent-backend** |
 | Frontend/backend UI contract / streaming rendering / observability panel / drill-down / catalog maintenance | **json-render-ui** |
+| Publishing page capabilities as WebMCP tools for an external Agent / tool lifecycle / schemas / security and verification | **webmcp-development-guide** |
 
 The skills are cross-linked; this guide is their shared upper-level entry point. When the requirement is vague or spans frontend and backend, dispatching from here is the fastest route.

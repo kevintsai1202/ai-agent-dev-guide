@@ -10,12 +10,13 @@
     {
       "name": "ai-agent-dev-guide",
       "source": "./",
-      "description": "AI agent development skills: routing entry-point (ai-agent-dev-guide), backend agent framework (embabel-agent-backend — Embabel / GOAP / JVM), and backend-agnostic generative UI frontend (json-render-ui).",
+      "description": "AI agent development skills: routing entry-point (ai-agent-dev-guide), backend agent framework (embabel-agent-backend - Embabel / GOAP / JVM), backend-agnostic generative UI frontend (json-render-ui), and the agent-facing layer (webmcp-development-guide - expose page capabilities as WebMCP tools).",
       "strict": false,
       "skills": [
         "./skills/ai-agent-dev-guide",
         "./skills/embabel-agent-backend",
-        "./skills/json-render-ui"
+        "./skills/json-render-ui",
+        "./skills/webmcp-development-guide"
       ]
     }
   ]

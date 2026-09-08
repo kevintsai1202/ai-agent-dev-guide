@@ -131,9 +131,9 @@ For course projects, ensure Java 21+ is used by both `java` and Maven. Do not tr
 Symptom: compile passes, but context startup throws
 `java.lang.NoSuchMethodError: 'void org.springframework.http.HttpHeaders.addAll(org.springframework.util.MultiValueMap)'`.
 
-Cause: the project uses Spring Boot 4 (Spring Framework 7) with released Embabel (<= 0.4.0), which is built on Spring Boot 3.5.x + Spring AI 1.1.x. Overriding Spring AI to 2.0 milestones/RCs fails on other removed APIs (`OpenAiApi`, `OpenAiChatModel$Builder.retryTemplate`).
+Cause: the project uses Spring Boot 4 (Spring Framework 7) with an Embabel version from the Boot 3 line (1.0.x or any 0.x), which is built on Spring Boot 3.5.x + Spring AI 1.1.x. Overriding Spring AI by hand does not help — the 2.0 line removed the APIs Embabel 1.0.x calls (`OpenAiApi`, `OpenAiChatModel$Builder.retryTemplate`).
 
-Fix: pin Spring Boot parent to 3.5.x until Embabel 2.0 ships Boot 4 / Spring AI 2.0 support (tracking: embabel/embabel-agent#1052).
+Fix: match the lines. Either upgrade Embabel to **1.5.1** (built on Spring Boot 4.1.0 + Spring AI 2.0.x + Jackson 3 — see the migration table in SKILL.md), or pin the Spring Boot parent back to 3.5.x and stay on Embabel 1.0.x.
 
 ### @SpringBootTest class never runs
 

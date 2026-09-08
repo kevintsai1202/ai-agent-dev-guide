@@ -1,6 +1,6 @@
 ---
 name: embabel-agent-backend
-description: "Use when building, reviewing, or refactoring Embabel + Spring AI JVM agent applications, especially Spring Boot 3.5.x / Java 21 projects that need GOAP planning, @Agent/@Action type-driven flows, Blackboard state, domain @Tool methods, MCP or Agentic RAG integration, prompt testing, observability, production-ready guardrails, @State loops/human-in-the-loop, @Condition boolean gates, Agentic/Progressive tools, streaming output, LLM cost tracking, budget guardrails, MCP server publishing, or concurrent execution. Note: released Embabel (<= 0.4.0) does not run on Spring Boot 4; Boot 4 support arrives with Embabel 2.0 (Spring AI 2.0)."
+description: "Use when building, reviewing, or refactoring Embabel + Spring AI JVM agent applications, especially Spring Boot 4.1.x (Embabel 1.5.x) or Spring Boot 3.5.x (Embabel 1.0.x) / Java 21 projects that need GOAP planning, @Agent/@Action type-driven flows, Blackboard state, domain @Tool methods, MCP or Agentic RAG integration, prompt testing, observability, production-ready guardrails, @State loops/human-in-the-loop, @Condition boolean gates, Agentic/Progressive tools, streaming output, LLM cost tracking, budget guardrails, MCP server publishing, or concurrent execution. Note: Embabel 1.5.x (latest 1.5.1) runs on Spring Boot 4.1.x + Spring AI 2.0.x + Jackson 3; keep the Embabel 1.0.x line for Spring Boot 3.5.x projects."
 ---
 
 # Embabel + Spring AI Development
@@ -25,12 +25,35 @@ Before writing code:
 3. Confirm the implementation understanding with the developer in concrete terms: target workflow, input/output domain records, terminal goal, model/tool boundaries, and tests.
 4. Verify current Embabel, Spring AI, and Spring Boot versions from the project's docs or build files before pinning dependencies. Do not invent versions.
 
-## Version Compatibility (verified 2026-06-12)
+## Version Compatibility (verified 2026-08-31)
 
-- Released Embabel (latest **0.4.0**, Maven Central since 0.2.0) is built on **Spring Boot 3.5.x + Spring AI 1.1.x** (transitively included; do not add a Spring AI BOM yourself).
-- **Spring Boot 4 is NOT supported**: compile passes but context startup fails with `NoSuchMethodError: HttpHeaders.addAll(...)` (Spring AI 1.1.x vs Spring Framework 7). Overriding Spring AI to 2.0 milestones/RCs also fails (`OpenAiApi` / `Builder.retryTemplate` removed).
-- Boot 4 support is scheduled for **Embabel 2.0.0** (tracking issue embabel/embabel-agent#1052, waiting on Spring AI 2.0 GA). Until then, pin Spring Boot 3.5.x.
-- Check latest versions at `https://repo1.maven.org/maven2/com/embabel/agent/embabel-agent-starter/maven-metadata.xml`.
+Two supported lines. Pick the one that matches your Spring Boot generation — do not mix.
+
+| Embabel | Released | Spring Boot | Spring AI | Jackson | Kotlin |
+|---|---|---|---|---|---|
+| **1.5.1** (latest) | 2026-08-24 | **4.1.0** | **2.0.x** (2.0.0 GA / 2.0.2) | **3.x** (`tools.jackson.*`) | 2.2.21 |
+| 1.5.0 | 2026-08-11 | 4.x | 2.0.0 GA | 3.x | 2.2.21 |
+| **1.0.0** (Boot 3 line) | 2026-07-20 | **3.5.14** | **1.1.7** | 2.x (`com.fasterxml.jackson.*`) | 2.x |
+
+- **Spring Boot 4 is now supported.** It landed in **Embabel 1.5.0** (Spring AI 2.0.0 GA migration, Jackson 3, Boot 4 observability packages), not in a 2.0 release — the old "wait for Embabel 2.0 / issue #1052" guidance is obsolete.
+- Spring AI is still pulled in transitively by the Embabel starters. **Do not add your own Spring AI BOM or starter** — the Embabel line dictates whether you get Spring AI 1.1.x or 2.0.x.
+- Java 21 remains the baseline (Spring Boot 4's own minimum is Java 17).
+- Verify before pinning: `https://repo1.maven.org/maven2/com/embabel/agent/embabel-agent-starter/maven-metadata.xml` (`<release>` element), and read the target artifact's POM to confirm the Spring Boot / Spring AI versions it actually drags in.
+
+### Migrating a Boot 3.5 + Embabel 1.0.x app to Boot 4 + Embabel 1.5.1
+
+This is a real migration, not a version bump. Budget for it:
+
+| Area | Change |
+|---|---|
+| Web starter | `spring-boot-starter-web` → `spring-boot-starter-webmvc` (old name deprecated, still resolves) |
+| Boot module splits | Explicit deps now needed: `spring-boot-jackson` (`JacksonAutoConfiguration`), `spring-boot-webmvc-test` (`@AutoConfigureMockMvc`), `spring-boot-security`. `spring-boot-starter-classic` / `spring-boot-starter-test-classic` are the "give me everything back" escape hatches |
+| Jackson 3 | Package rebrand `com.fasterxml.jackson.*` → `tools.jackson.*`; `ObjectMapper` is immutable — build with `JsonMapper.builder()`; `registerKotlinModule()` → `jacksonObjectMapper()`; drop `JavaTimeModule` (built in) |
+| Spring AI 2.0 model factories | Provider facades deleted in favour of vendor SDKs: `.openAiApi()` → `.openAiClient()`, `.anthropicApi()` → `.anthropicClient()`, `.defaultOptions()` → `.options()`; retry templates are no longer passed to model builders |
+| Validation | `javax.validation` → `jakarta.validation` |
+| Tests | JUnit 6; drop nullable type args such as `assertThrows<X?>` |
+
+Reference: the `Spring Boot 4 / Spring AI 2.0 Migration` page on the embabel/embabel-agent wiki (written against the 2.0.0 dev branch that shipped as the 1.5.x line — treat its version table as historical, its API cheat sheet as current).
 
 ## Development Workflow
 

@@ -101,6 +101,8 @@ Adjust method names and imports to match the actual Embabel version in the proje
 
 ## Official Template Verification Points (tested 2026-06, Embabel 0.3.5 / 0.4.0)
 
+> These API observations were field-tested on the 0.x line. The annotation/`Ai` programming model is unchanged through 1.5.x, but re-verify exact builder signatures against the version in your build file — Spring AI 2.0 (Embabel 1.5.x) renamed several provider-facing builders.
+
 Source: [embabel/java-agent-template](https://github.com/embabel/java-agent-template).
 The following marks what is **"required" vs. "not needed"**, to avoid common redundant annotations and STUCK traps.
 
@@ -119,9 +121,9 @@ The following marks what is **"required" vs. "not needed"**, to avoid common red
 
 | Anti-pattern | Why it is not needed |
 |--------|-----------|
-| Adding `@EnableAgents` on the App | 0.4.x auto-configuration enables it automatically. `@EnableAgents` still exists but is only for advanced settings (`loggingTheme`, `mcpServers`), **not required to enable agents** |
+| Adding `@EnableAgents` on the App | Auto-configuration (0.4.x through 1.5.x) enables it automatically. `@EnableAgents` still exists but is only for advanced settings (`loggingTheme`, `mcpServers`), **not required to enable agents** |
 | Adding `@Component` on the Agent class | `@Agent` is already a Spring stereotype; adding `@Component` is redundant |
-| Adding a Spring AI BOM / starter yourself | Spring AI 1.1.x is transitively provided by the Embabel starter; adding your own causes version conflicts |
+| Adding a Spring AI BOM / starter yourself | Spring AI is transitively provided by the Embabel starter (2.0.x with Embabel 1.5.x, 1.1.x with 1.0.x); adding your own causes version conflicts |
 | Calling the LLM with Spring AI `ChatClient` in a controller | The project has no `ChatModel` bean (Embabel uses its own LLM abstraction), causing `UnsatisfiedDependencyException`. Always call the LLM via the `Ai` component |
 | `agentPlatform.runAgentFrom(agent, opts, Map.of("k", v))` | A Map does not create a typed fact on the Blackboard, so the planner finds no starting precondition → STUCK. Use `AgentInvocation.invoke(domainObject)` or `createAgentProcessFrom(agent, opts, obj)` to pass a typed object |
 | `process.start(p).join()` to wait for completion | The future from `start()` never completes when the process is stuck, causing an infinite wait. Use `AgentInvocation` (synchronous) or add an `EarlyTerminationPolicy` |
@@ -488,19 +490,19 @@ The two models can be mixed: the DSL suits rapid prototyping, while the annotati
 
 ## Maven Dependency Shape
 
-Use this as a shape, not as a version authority. Verified working combo (2026-06-12): Spring Boot **3.5.14** parent + Embabel **0.4.0**. Do NOT use Spring Boot 4 with released Embabel (startup fails; see troubleshooting). Spring AI (1.1.x) comes in transitively from the Embabel starters — do not add a Spring AI BOM or starter yourself.
+Use this as a shape, not as a version authority. Verified combos (2026-08-31): Spring Boot **4.1.x** parent + Embabel **1.5.1**, or Spring Boot **3.5.14** parent + Embabel **1.0.0**. Never pair Boot 4 with Embabel 1.0.x/0.x (startup fails; see troubleshooting). Spring AI comes in transitively from the Embabel starters — do not add a Spring AI BOM or starter yourself.
 
 ```xml
-<!-- parent: spring-boot-starter-parent 3.5.x (do not use Boot 4 before Embabel 2.0) -->
+<!-- parent: spring-boot-starter-parent 4.1.x (Boot 3 line: 3.5.x + Embabel 1.0.x) -->
 <properties>
   <java.version>21</java.version>
-  <embabel.version>CHECK-OFFICIAL-DOCS</embabel.version><!-- was 0.4.0 as of 2026-06 -->
+  <embabel.version>CHECK-OFFICIAL-DOCS</embabel.version><!-- was 1.5.1 as of 2026-08 -->
 </properties>
 
 <dependencies>
   <dependency>
     <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-web</artifactId><!-- Boot 3.x name; webmvc is the Boot 4-era name -->
+    <artifactId>spring-boot-starter-webmvc</artifactId><!-- Boot 4 name; spring-boot-starter-web on Boot 3.5 -->
   </dependency>
   <dependency>
     <groupId>com.embabel.agent</groupId>
