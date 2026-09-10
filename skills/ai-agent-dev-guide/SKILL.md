@@ -23,6 +23,8 @@ Evidence sources: the `learn-embabel` course (backend) plus the `embabel-json-re
 | Domain `@Tool`, MCP, Agentic RAG, `@Condition`/SpEL gating (Embabel) | **embabel-agent-backend** |
 | `@State` loops / human-in-the-loop (`WaitFor`), streaming output, cost tracking and budget guardrails (Embabel) | **embabel-agent-backend** |
 | Autonomy `chooseAndRunAgent` / `AgentInvocation`, multi-agent orchestration and fusion, intent parameterization (Embabel) | **embabel-agent-backend** |
+| Parallel fan-out inside one step (`ScatterGather` fork-join), multi-model consensus, bounded retry loops — the workflow DSL builders (Embabel) | **embabel-agent-backend** |
+| Agent Skills (`SKILL.md` packages from GitHub or local dirs, `EmbeddingSkillSelector`), model providers and BYOK keys (Embabel) | **embabel-agent-backend** |
 | Spring Boot / Spring AI wiring, version compatibility, testing, observability and failure handling (Embabel) | **embabel-agent-backend** |
 | A dynamic dashboard for "natural language → backend generates a UI spec → frontend progressive rendering" | **json-render-ui** |
 | json-render flat element-tree spec contract, component catalog ↔ frontend registry reconciliation | **json-render-ui** |

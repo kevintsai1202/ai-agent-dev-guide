@@ -1,6 +1,6 @@
 ---
 name: embabel-agent-backend
-description: "Use when building, reviewing, or refactoring Embabel + Spring AI JVM agent applications, especially Spring Boot 4.1.x (Embabel 1.5.x) or Spring Boot 3.5.x (Embabel 1.0.x) / Java 21 projects that need GOAP planning, @Agent/@Action type-driven flows, Blackboard state, domain @Tool methods, MCP or Agentic RAG integration, prompt testing, observability, production-ready guardrails, @State loops/human-in-the-loop, @Condition boolean gates, Agentic/Progressive tools, streaming output, LLM cost tracking, budget guardrails, MCP server publishing, or concurrent execution. Note: Embabel 1.5.x (latest 1.5.1) runs on Spring Boot 4.1.x + Spring AI 2.0.x + Jackson 3; keep the Embabel 1.0.x line for Spring Boot 3.5.x projects."
+description: "Use when building, reviewing, or refactoring Embabel + Spring AI JVM agent applications, especially Spring Boot 4.1.x (Embabel 1.5.x) or Spring Boot 3.5.x (Embabel 1.0.x) / Java 21 projects that need GOAP planning, @Agent/@Action type-driven flows, Blackboard state, domain @Tool methods, MCP or Agentic RAG integration, prompt testing, observability, production-ready guardrails, @State loops/human-in-the-loop, @Condition boolean gates, Agentic/Progressive tools, streaming output, LLM cost tracking, budget guardrails, MCP server publishing, concurrent execution, the workflow DSL builders (ScatterGather fork-join, Consensus, RepeatUntil/RepeatUntilAcceptable), Agent Skills (SKILL.md packages, EmbeddingSkillSelector), or model provider / BYOK wiring. Note: Embabel 1.5.x (latest 1.5.1, verified 2026-09-10) runs on Spring Boot 4.1.x + Spring AI 2.0.x + Jackson 3; keep the Embabel 1.0.x line for Spring Boot 3.5.x projects."
 ---
 
 # Embabel + Spring AI Development
@@ -25,7 +25,7 @@ Before writing code:
 3. Confirm the implementation understanding with the developer in concrete terms: target workflow, input/output domain records, terminal goal, model/tool boundaries, and tests.
 4. Verify current Embabel, Spring AI, and Spring Boot versions from the project's docs or build files before pinning dependencies. Do not invent versions.
 
-## Version Compatibility (verified 2026-08-31)
+## Version Compatibility (verified 2026-09-10)
 
 Two supported lines. Pick the one that matches your Spring Boot generation — do not mix.
 
@@ -39,6 +39,18 @@ Two supported lines. Pick the one that matches your Spring Boot generation — d
 - Spring AI is still pulled in transitively by the Embabel starters. **Do not add your own Spring AI BOM or starter** — the Embabel line dictates whether you get Spring AI 1.1.x or 2.0.x.
 - Java 21 remains the baseline (Spring Boot 4's own minimum is Java 17).
 - Verify before pinning: `https://repo1.maven.org/maven2/com/embabel/agent/embabel-agent-starter/maven-metadata.xml` (`<release>` element), and read the target artifact's POM to confirm the Spring Boot / Spring AI versions it actually drags in.
+
+**Re-verified 2026-09-10: 1.5.1 (2026-08-24) is still the latest release** — no newer tag on GitHub and `<release>` is 1.5.1 for every `com.embabel.agent` artifact. The table above stands.
+
+**Next-release preview (on `main`, NOT released — do not pin against these).** Useful only for planning:
+
+| Landing next | What it changes |
+|---|---|
+| Boot 4.1.1 + Spring AI 2.0.1 | The compatibility row moves off 4.1.0 / 2.0.0; nothing to do until it ships |
+| `AgentProcess` snapshot / restore persistence + `embabel-agent-cache` (`AgentCacheProvider`) | Durable human-in-the-loop: a `WAITING` process survives a node restart. Today `WaitFor` state is in-memory only (see `references/states-and-loops.md`) |
+| Agent / Action delay policy | Declarative pacing (rate-limit friendliness) instead of hand-rolled sleeps |
+| LLM retry / failure events + shared retry-and-rate-limit policy | Retries become observable through `AgenticEventListener` (§11 pattern) |
+| Podman script-execution engine for Agent Skills | Lifts the "skills' `scripts/` are loaded but never executed" limit noted in §17 |
 
 ### Migrating a Boot 3.5 + Embabel 1.0.x app to Boot 4 + Embabel 1.5.1
 
@@ -119,6 +131,9 @@ For the full step-by-step checklist, read `references/development-workflow.md`.
   - You need to **stream GOAP step progress to a UI (SSE)** → §13 Real-time Progress Observability (note: plan/action events only flow through the global listener, not per-call listeners).
   - A **compound / cross-domain query** should trigger **multiple agents and fuse** results → §14 Multi-Agent Orchestration (`chooseAndRunAgent` vs `runAgent(input,opts,agent)`; use distinct output types when fusing to avoid ambiguity).
   - Charts/data must **adapt to query intent** (this-vs-last month, filter by tier/priority) → §15 Intent Parameterization (LLM extracts structured parameters + Java applies deterministic filtering).
+  - A **fixed set of branches must run in parallel inside one step** and be fused → §16 Workflow DSL (`ScatterGatherBuilder`, default `maxConcurrency` 6); several models must **vote/agree** → `ConsensusBuilder`; a step must **retry until an evaluator accepts it** → `RepeatUntilAcceptableBuilder`.
+  - Reusable **skill packages** (`SKILL.md` from GitHub or a local directory) must be handed to an LLM, or reference knowledge must be injected without the model deciding to ask → §17 Agent Skills (`Skills` as `LlmReference`, `EmbeddingSkillSelector`).
+  - A **model provider** must be added, or the end user supplies their **own API key** → §18 Providers / BYOK (note: BYOK calls report zero cost, so budget guardrails cannot rely on cost tracking).
 
 ## Setup Essentials (verified against the official template — required vs not needed)
 

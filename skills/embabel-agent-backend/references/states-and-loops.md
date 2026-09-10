@@ -171,3 +171,6 @@ Consider packing configuration values into a single `Properties` record to avoid
 | Looping pattern (revise-review cycle) | ✅ Good fit (with `clearBlackboard`) |
 | Human-in-the-Loop | ✅ Good fit (with `WaitFor`) |
 | Pure linear GOAP with no looping need | Not needed; standard `@Action` is enough |
+| Self-contained retry loop inside **one** step (generate → evaluate → retry, with an iteration cap) | Prefer the workflow DSL: `RepeatUntilBuilder` / `RepeatUntilAcceptableBuilder` — see `references/advanced-features.md` §16 |
+
+**`@State` vs the `RepeatUntil*` builders**: use `@State` when the loop spans planner-visible stages, needs to persist across turns, or waits on a human (`WaitFor`). Use the builders when the whole loop is one atomic step from the planner's point of view — they give you `withMaxIterations`, an attempt history, and a separate evaluator for free, with no `clearBlackboard` bookkeeping.

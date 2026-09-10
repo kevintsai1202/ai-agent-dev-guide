@@ -34,6 +34,19 @@ After choosing Embabel, select a planner based on the scenario (set via `@Agent(
 
 Most business scenarios use GOAP. Chatbots / event-reactive systems use Utility AI (paired with `@EmbabelComponent`).
 
+### Not Everything Needs a Planner: the Workflow DSL
+
+Some shapes are better expressed as a **standard workflow builder** than as a hand-modelled GOAP path — parallel fork-join, multi-model consensus, and bounded retry loops. They are type-safe, opaque to the parent planner, and callable either as a registered `Agent` bean or inline from an `@Action` via `asSubProcess(context)`:
+
+| Shape | Builder |
+|---|---|
+| Fan out to N generators in parallel, then fuse | `ScatterGatherBuilder` |
+| Several models vote / agree on one answer | `ConsensusBuilder` |
+| Repeat until a condition, or until an evaluator accepts | `RepeatUntilBuilder` / `RepeatUntilAcceptableBuilder` |
+| One atomic step, no pre/postconditions | `SimpleAgentBuilder` |
+
+See `references/advanced-features.md` §16 for the Java API and the parallelism comparison (`ScatterGather` vs `process-type: CONCURRENT` vs `Autonomy` multi-agent orchestration).
+
 ### Chatbot Mode
 
 To build a conversational application (multi-turn dialogue, event reactions), Embabel provides a complete Chatbot mechanism:

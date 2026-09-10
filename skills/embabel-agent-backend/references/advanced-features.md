@@ -258,6 +258,12 @@ embabel:
 - Multiple parallel actions may throw `ReplanRequestedException` simultaneously
 - Only the **first** request is accepted — its Blackboard updates are applied, and the triggering action is temporarily blacklisted
 - The blacklist is cleared automatically after a successful plan
+- Execution goes through the platform `Asyncer` (Spring managed task executor with virtual threads)
+
+> **This is only one of three parallel mechanisms.** `CONCURRENT` parallelises *the plan*. To fan out
+> to N branches **inside a single action** and fuse them, use `ScatterGatherBuilder` / `ConsensusBuilder`
+> (§16). To run **several whole agents** and fuse their outputs, use `Autonomy` orchestration (§14).
+> See the comparison table at the end of §16.
 
 ---
 
@@ -340,6 +346,25 @@ if (response.getResult() == null) {
         logger.info("LLM reasoning: {}", block.getContent()));
 }
 ```
+
+### Thinking Tag Control (1.5.1)
+
+Filter which XML-tagged reasoning blocks the model produces and returns — **without editing the prompt**:
+
+```java
+// Keep only the "analysis" block; the model is auto-instructed (system prompt hint) to use that tag
+ThinkingResponse<MonthItem> response = runner
+    .thinking(Thinking.withIncludedTags("analysis"))
+    .createObject(prompt, MonthItem.class);
+
+// Drop "scratchpad" blocks, keep everything else
+ThinkingResponse<MonthItem> response2 = runner
+    .thinking(Thinking.withExcludedTags("scratchpad"))
+    .createObject(prompt, MonthItem.class);
+```
+
+Caveat: these apply **only to named TAG blocks**. Untagged reasoning (PREFIX / NO_PREFIX style) always
+passes through, so do not rely on `excludedTags` to keep reasoning out of a response.
 
 ### Provider Notes
 
@@ -599,6 +624,177 @@ UserInput → extractParams (LLM) → AnalysisParams{comparison, periods, tiers,
 
 ---
 
+## 16. Workflow DSL — Standard Workflow Builders (fork-join / consensus / loops)
+
+Besides annotation-driven `@Agent` + `@Action`, Embabel ships a **type-safe builder DSL** for self-contained workflows. Reach for it when a step is "one atomic action from the outside, several steps inside" — especially **fan out to N generators in parallel and fuse the results**, which is tedious to express as separate `@Action` methods.
+
+Package: `com.embabel.agent.api.common.workflow.{control, multimodel, loop}` (verified present in 1.5.1).
+
+| Builder | Purpose | Parallel? |
+|---|---|---|
+| `SimpleAgentBuilder` | Simplest agent: one step, no preconditions/postconditions | No |
+| `ScatterGatherBuilder` | **Fork-join**: run N generators in parallel, then consolidate | **Yes** |
+| `ConsensusBuilder` | Ask several sources (models / temperatures) and reconcile; a specialization of ScatterGather | **Yes** |
+| `RepeatUntilBuilder` | Repeat a step until a condition holds | No |
+| `RepeatUntilAcceptableBuilder` | Repeat with a **separate evaluator** producing feedback + acceptance criteria | No |
+
+Every builder ends in one of two ways, with the same API shape:
+
+- `.buildAgent(name, description)` → an `Agent`. Register it as a `@Bean` of type `Agent` — the DSL is **not** auto-scanned the way `@Agent` classes are.
+- `.asSubProcess(context)` → build **and run it now** as a subprocess of the current process, so it can be called from inside an `@Action` method. (`.build()` + `context.asSubProcess(...)` is the explicit two-step form.)
+
+Workflow agents are **opaque** (`agent.getOpaque() == true`): their internal actions are not exported to the platform, so they never pollute the parent planner's action space.
+
+### ScatterGatherBuilder — the built-in parallel path
+
+```java
+@Action
+FactChecks runAndConsolidateFactChecks(
+        DistinctFactualAssertions assertions,
+        ActionContext context) {
+    // One generator per model; these will run in parallel
+    var generators = properties.models().stream()
+            .map(model -> factCheckWithSingleLlm(model, assertions, context))
+            .toList();
+    return ScatterGatherBuilder
+            .returning(FactChecks.class)       // overall result type
+            .fromElements(FactCheck.class)     // element type being gathered
+            .generatedBy(generators)           // list of functions run IN PARALLEL
+            .consolidatedBy(ctx -> reconcile(ctx.getInput().getResults()))
+            .asSubProcess(context);            // run now, inside this action
+}
+```
+
+- The consolidation lambda reads the gathered elements via `ctx.getInput().getResults()` (a `ResultList`) and returns the overall result type.
+- `generatedBy(...)` accepts plain suppliers or functions of `SupplierActionContext<ELEMENT>`, so a generator can be an LLM call, a Java service call, or a nested agent invocation.
+- **Concurrency cap**: internally `ScatterGather` calls `context.parallelMap(generators, maxConcurrency)`; the builder default is `ScatterGatherBuilder.DEFAULT_MAX_CONCURRENCY = 6`. Execution runs on the platform `Asyncer` (Spring managed task executor, virtual threads).
+
+### ConsensusBuilder — multi-model agreement
+
+```java
+var agent = ConsensusBuilder
+        .returning(Age.class)
+        .withSources(List.of(               // or .sourcedFrom(List.of(() -> ...)) for plain suppliers
+                tac -> askModelA(tac),
+                tac -> askModelB(tac)))
+        .withConsensusBy(ctx -> average(ctx.getInput().getResults()))
+        .buildAgent("ageConsensus", "Reconciles age estimates from several models");
+```
+
+Typical use: the same prompt against several `LlmOptions` (different models or temperatures), then take a majority/average — a cheap accuracy guardrail for numeric or classification outputs.
+
+### RepeatUntilAcceptableBuilder — generate / evaluate / retry
+
+```java
+var agent = RepeatUntilAcceptableBuilder
+        .returning(Report.class)
+        .consuming(Person.class)            // optional: declare the input type
+        .withMaxIterations(3)               // hard cap — always set one
+        .repeating(tac -> {
+            var history = tac.getAttemptHistory();   // previous attempts and their feedback
+            return writeReport(tac.getInput(), history);
+        })
+        .withEvaluator(ctx -> {
+            var candidate = ctx.getAttemptHistory().resultToEvaluate();
+            return new TextFeedback(score(candidate), "why this score");
+        })
+        .withAcceptanceCriteria(f -> f.getFeedback().getScore() > 0.5)
+        .buildAgent("reportWriter", "Writes a report until it passes review");
+```
+
+- `RepeatUntilBuilder` is the simpler sibling: `.withMaxIterations(n).repeating(tac -> ...).until(f -> ...)`.
+- The generator can read `tac.getAttemptHistory()` / `tac.lastAttempt()` to see prior results **and** the evaluator's feedback — that feedback loop is what makes the retry actually improve.
+- Compare with `@State` loops (`references/states-and-loops.md`): use these builders when the loop is self-contained inside one step; use `@State` when the loop spans planner-visible stages or needs human-in-the-loop.
+
+### Choosing between the parallel / multi-agent mechanisms
+
+| Need | Mechanism | Where |
+|---|---|---|
+| Fan out **inside one action** to N generators of the same element type, then fuse | `ScatterGatherBuilder` / `ConsensusBuilder` | §16 |
+| Let the planner run **every currently achievable action** at once | `process-type: CONCURRENT` (`ConcurrentAgentProcess`) | §7 |
+| Route a compound query to **several separate agents** and fuse their outputs | `Autonomy.chooseAndRunAgent` / `runAgent(input, opts, agent)` | §14 |
+| Hand-rolled parallelism over a collection inside an action | `context.parallelMap(items, maxConcurrency, fn)` | — |
+
+Rule of thumb: `ScatterGather` for a **known, fixed set of branches** in one step; `CONCURRENT` when *the plan itself* has independent branches; `Autonomy` orchestration when the branches are whole agents with their own goals.
+
+---
+
+## 17. Agent Skills — Portable Skill Packages (new in 1.5.1)
+
+Embabel implements the [Agent Skills Specification](https://agentskills.io/specification): a skill is a directory with a `SKILL.md` (YAML frontmatter + markdown instructions) plus optional `scripts/`, `references/`, `assets/`. The `Skills` class implements `LlmReference`, so it plugs straight into a `PromptRunner`.
+
+```java
+var skills = new Skills("financial-skills", "Financial analysis skills")
+    .withGitHubUrl("https://github.com/owner/repo/tree/main/skills");
+    // .withGitHubSkills(owner, repo, skillsPath, branch)  — explicit form
+    // .withLocalSkill("/path/to/one-skill")               — a single directory containing SKILL.md
+    // .withLocalSkills("/path/to/skills-dir")             — depth-1 scan of immediate subdirectories only
+
+var response = context.ai()
+    .withLlm(llm)
+    .withReference(skills)
+    .withSystemPrompt("You are a helpful financial analyst.")
+    .respond(conversation.getMessages());
+```
+
+### Two activation modes
+
+| Mode | How it fires | Best for |
+|---|---|---|
+| **Lazy activation** (default) | Only ~50–100 tokens of metadata per skill enter the system prompt; the model calls the `activate(name)` tool when it decides a skill is relevant. Also exposes `listResources(...)` / `readResource(...)` | **Procedural** skills — "how to do X" |
+| **Embedding selection** | `EmbeddingSkillSelector` matches the query against each skill's `description` and injects the instructions directly — no tool call, no model decision, one embedding call | **Reference knowledge** — formulas, domain conventions, terminology a confident model would never think to look up |
+
+```java
+var selector = new EmbeddingSkillSelector(embeddingService);
+var response = context.ai()
+    .withLlm(llm)
+    .withPromptContributor(selector.contributorFor(question, skills))   // lazy: unused runner costs no embedding call
+    .respond(conversation.getMessages());
+```
+
+A skill opts into embedding selection through the spec's open `metadata` map, so it stays portable (other runtimes ignore the key):
+
+```markdown
+---
+name: financial-metric-formulas
+description: Derived financial metrics and how to compute them from statement line items — quick ratio, EBITDA, CAGR, free cash flow.
+metadata:
+  activation: embedding
+---
+```
+
+Notes and limits (1.5.1):
+
+- Skills **without** `activation: embedding` are never selected this way — existing skill libraries are unaffected.
+- Default threshold `0.30`, maximum 2 skills; both are constructor parameters. Similarity scores are not calibrated across embedding models — retune if you change the model.
+- Selection is **fail-open**: an embedding failure yields no skills rather than an error.
+- `description` is what gets embedded — write it in the vocabulary of the questions the skill serves.
+- Similarity discriminates by **subject, not difficulty**: an embedding-selected skill is injected for *every* question in its subject area, so its instructions must be safe to inject unconditionally.
+- Load-time validation: required frontmatter fields, file references in the instructions must exist, and the skill name must match its directory name. Disable the file check with `new DefaultDirectorySkillDefinitionLoader(false)`.
+- **`scripts/` are loaded but not executed** in 1.5.1 (a warning is logged); `allowed-tools` is parsed but not enforced.
+- Skills compose with other `LlmReference`s (e.g. `LocalDirectory`) via repeated `.withReference(...)`.
+
+---
+
+## 18. Model Providers, BYOK, and Starter Modules
+
+Model support is modular: one starter per provider, each dragging in its matching autoconfigure module. Add **only** the provider(s) you use — never your own Spring AI BOM or starter (see the version table in `SKILL.md`).
+
+Provider starters under `com.embabel.agent` (1.5.1): `embabel-agent-starter-openai`, `-openai-custom`, `-anthropic`, `-gemini`, `-google-genai`, `-bedrock`, `-oci-genai`, `-dashscope` (Alibaba Cloud), `-minimax`, `-zai`, `-deepseek`, `-mistral-ai`, `-ollama`, `-lmstudio`, `-dockermodels`, `-onnx` (local embeddings), plus `-byok`.
+
+Non-model starters worth knowing: `embabel-agent-starter-shell` (§1), `-mcpserver` and `-mcpserver-security` (§12), `-a2a`, `-observability`, `-webmvc`, `-platform`.
+
+### BYOK (bring your own key)
+
+`embabel-agent-starter-byok` is the supported path when the **end user** supplies the key at runtime rather than the deployment holding it:
+
+- The starter already knows the endpoint for every provider it covers; you supply the key per call/session.
+- LLM roles resolve through an SPI: your `RoleResolver` beans are consulted first, in `Ordered` order, before the endpoints the starter knows — so a gateway, proxy, or self-hosted endpoint needs no patching.
+- BYOK calls are billed to the user's key, so they report `PricingModel.ALL_YOU_CAN_EAT` — **cost tracking (§11) reports zero cost for them**; budget guardrails must not depend on it.
+- A deployment still waiting for a key resolves `default-llm` to a placeholder and names the role/model it cannot satisfy, instead of failing obscurely at startup.
+
+---
+
 ## Quick Index: When to Consult Which Section
 
 | Need | Consult |
@@ -609,7 +805,7 @@ UserInput → extractParams (LLM) → AnalysisParams{comparison, periods, tiers,
 | A tool itself needs an LLM to orchestrate sub-tools | §4 Agentic Tools |
 | A large number of tools need grouped, progressive disclosure | §5 Progressive Tools |
 | Complex prompts need template-based management | §6 Templates |
-| Independent sub-tasks need to run in parallel | §7 Execution Modes |
+| Independent sub-tasks need to run in parallel | §7 Execution Modes (whole plan) / §16 ScatterGather (inside one action) |
 | LLM output needs to be returned progressively | §8 Streaming |
 | The LLM's reasoning process needs to be validated | §9 Thinking |
 | LLM/tool interactions need to be monitored or modified | §10 Callbacks |
@@ -618,3 +814,10 @@ UserInput → extractParams (LLM) → AnalysisParams{comparison, periods, tiers,
 | The front end needs to display GOAP step progress in real time (SSE) | §13 Real-Time Progress Observability |
 | A composite query needs to trigger multiple agents and fuse the results | §14 Multi-Agent Orchestration |
 | A query needs dynamic filtering (this month vs last month, by tier/priority) | §15 Intent Parameterization |
+| A fixed set of branches must fan out in parallel and be fused inside one step | §16 Workflow DSL (`ScatterGatherBuilder`) |
+| Several models must vote / agree on one answer | §16 Workflow DSL (`ConsensusBuilder`) |
+| A step must retry until an evaluator accepts the result | §16 Workflow DSL (`RepeatUntilAcceptableBuilder`) |
+| Reusable skill packages (`SKILL.md`) must be given to an LLM, from GitHub or a local directory | §17 Agent Skills |
+| Reference knowledge must be injected without the model deciding to ask for it | §17 Agent Skills (`EmbeddingSkillSelector`) |
+| Only specific reasoning tag blocks should be kept or dropped | §9 Thinking Tag Control |
+| A model provider must be added, or the end user supplies their own API key | §18 Providers / BYOK |
