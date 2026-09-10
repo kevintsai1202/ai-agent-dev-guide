@@ -17,6 +17,8 @@
 
 四者互相交叉連結；需求模糊或跨前後端時，從 `ai-agent-dev-guide` 分派最快。前端（`json-render-ui`）也可單獨搭配任何符合契約的後端使用；`webmcp-development-guide` 為選用層，方向相反——前三者是「你蓋一個 agent」，它是「讓你的網站成為別人 agent 的工具提供者」，可疊加在任何前端上。
 
+> [開啟 GitHub Pages 圖形化說明網站](https://kevintsai1202.github.io/ai-agent-dev-guide/)（本地入口：[index.html](docs/ai-agent-visual-guide/index.html)）：集中閱讀四個技能的 17 張概念圖解。圖解網站與技能本體分離，技能目錄只保留可安裝的 Markdown 說明。
+
 ## 安裝
 
 ### 方式一：Claude Code Plugin（推薦）
@@ -59,6 +61,8 @@ ai-agent-dev-guide/
 │  ├─ embabel-agent-backend/   # 後端：agent / GOAP / JVM
 │  ├─ json-render-ui/   # 前端：動態生成 UI / 串流渲染
 │  └─ webmcp-development-guide/  # Agent 對外：WebMCP 工具發佈（選用）
+├─ docs/
+│  └─ ai-agent-visual-guide/    # 獨立的圖形化說明網站與圖解資產
 └─ README.md
 ```
 

@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="AI Agent Dev Guide 四個技能的繁體中文概念圖解。">
+    <title>AI Agent Dev Guide｜圖形化說明</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <div class="site-shell">
+      <header class="hero" id="top">
+        <div class="hero-grid"></div>
+        <div class="hero-content">
+          <p class="eyebrow">AI AGENT DEV GUIDE / VISUAL GUIDE</p>
+          <h1>把 Agent 架構，畫成能讀懂的路線圖</h1>
+          <p class="hero-lead">
+            這是一份獨立於技能本體之外的視覺化說明網站，將技能路由、GOAP 後端、生成式 UI 與 WebMCP
+            的重要概念整理成可快速掃讀的圖解。
+          </p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="#route">先看技能路由</a>
+            <a class="button button-secondary" href="#reading-order">查看閱讀順序</a>
+          </div>
+          <div class="hero-stats" aria-label="網站摘要">
+            <span><strong>4</strong> 個技能</span>
+            <span><strong>17</strong> 張圖解</span>
+            <span><strong>0</strong> 個外部依賴</span>
+          </div>
+        </div>
+      </header>
+
+      <nav class="top-nav" aria-label="技能導覽">
+        <a href="#case-study">實作案例</a>
+        <a href="#install">安裝技能</a>
+        <a href="#route">技能路由</a>
+        <a href="#embabel">Embabel 後端</a>
+        <a href="#json-render">json-render UI</a>
+        <a href="#webmcp">WebMCP</a>
+        <a href="#reading-order">閱讀順序</a>
+      </nav>
+
+      <main>
+        <section class="case-study" id="case-study">
+          <div class="case-study-copy">
+            <p class="section-kicker">LIVE IMPLEMENTATION / WEBMCP</p>
+            <h2>Law Graph：把技能落在真的網站上</h2>
+            <p>
+              <a class="inline-link" href="https://law-graph-webmcp.zeabur.app/" target="_blank" rel="noopener">Law Graph</a>
+              是一個實際部署的法律 AI 網站範例。它把人類使用的網站介面，與外部 Agent 可探索的 WebMCP 工具層放在同一個產品入口，適合用來對照本套件的 WebMCP 邊界、工具註冊與漸進增強設計。
+            </p>
+            <div class="case-study-actions">
+              <a class="button button-primary" href="https://law-graph-webmcp.zeabur.app/" target="_blank" rel="noopener">開啟 Law Graph ↗</a>
+              <a class="button button-secondary" href="#webmcp">閱讀 WebMCP 圖解</a>
+            </div>
+          </div>
+          <div class="case-study-facts">
+            <div class="fact-card">
+              <span class="fact-number">01</span>
+              <div><strong>實際部署</strong><small>不是概念 mockup，而是可直接開啟的網站入口。</small></div>
+            </div>
+            <div class="fact-card">
+              <span class="fact-number">02</span>
+              <div><strong>WebMCP bundle</strong><small>公開 HTML shell 可觀察到 WebMCP bundle 與應用 bundle 的分層載入。</small></div>
+            </div>
+            <div class="fact-card">
+              <span class="fact-number">03</span>
+              <div><strong>技能入口</strong><small>站內也提供 Law Powers skills 入口，形成「網站功能＋Agent 技能」的實作對照。</small></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="intro-panel" id="reading-order">
+          <div>
+            <p class="section-kicker">HOW TO READ</p>
+            <h2>先分流，再深入</h2>
+            <p>
+              先用入口技能判斷問題屬於哪個層次；需要多步驟、型別資料與稽核時看 Embabel，需要動態 UI 時看
+              json-render；等人類可操作的頁面完成後，再視需求加入 WebMCP。
+            </p>
+          </div>
+          <ol class="reading-steps">
+            <li><span>01</span><strong>選層次</strong><small>先問誰控制下一步</small></li>
+            <li><span>02</span><strong>建流程</strong><small>GOAP 或 UI 契約</small></li>
+            <li><span>03</span><strong>做驗證</strong><small>測試、觀測、容錯</small></li>
+            <li><span>04</span><strong>再開放</strong><small>選用 WebMCP</small></li>
+          </ol>
+        </section>
+
+        <section class="install-panel" id="install">
+          <div class="section-heading">
+            <p class="section-kicker">INSTALL / GET STARTED</p>
+            <h2>把技能裝進你的 Agent</h2>
+            <p>
+              這個 repo 提供四個互相連結的技能。可以整套安裝，也可以先安裝入口技能，再依任務加入 Embabel、json-render 或 WebMCP。
+            </p>
+          </div>
+          <div class="install-grid">
+            <article class="install-card">
+              <div class="install-card-heading"><span class="install-index">A</span><h3>Claude Code Plugin</h3></div>
+              <p>適合希望讓 Claude Code 依技能描述自動路由的情境。</p>
+              <pre class="code-block"><code>/plugin marketplace add kevintsai1202/ai-agent-dev-guide
+/plugin install ai-agent-dev-guide@ai-agent-dev-guide</code></pre>
+            </article>
+            <article class="install-card">
+              <div class="install-card-heading"><span class="install-index">B</span><h3>Skills CLI</h3></div>
+              <p>適合直接把技能加入偵測到的 Agent，或指定全域安裝。</p>
+              <pre class="code-block"><code>npx skills add kevintsai1202/ai-agent-dev-guide
+npx skills add kevintsai1202/ai-agent-dev-guide --all
+npx skills add kevintsai1202/ai-agent-dev-guide --global</code></pre>
+            </article>
+          </div>
+          <div class="skill-start-grid">
+            <a href="#route"><span>01</span><strong>不確定從哪裡開始</strong><small>先看 ai-agent-dev-guide</small></a>
+            <a href="#embabel"><span>02</span><strong>要建 Agent 後端</strong><small>看 embabel-agent-backend</small></a>
+            <a href="#json-render"><span>03</span><strong>要做動態 UI</strong><small>看 json-render-ui</small></a>
+            <a href="#webmcp"><span>04</span><strong>要讓外部 Agent 使用網站</strong><small>看 webmcp-development-guide</small></a>
+          </div>
+        </section>
+
+        <section class="skill-section" id="route">
+          <div class="section-heading">
+            <p class="section-kicker">01 / ROUTER</p>
+            <h2>AI Agent Dev Guide</h2>
+            <p>先理解四個技能的責任邊界、完整建置順序，以及何時不需要 Agent Framework。</p>
+          </div>
+          <div class="gallery gallery-three">
+            <figure class="diagram-card">
+              <a href="images/ai-agent-suite-map.png" target="_blank" rel="noopener">
+                <img src="images/ai-agent-suite-map.png" alt="AI Agent Dev Suite 三個領域的分工圖" loading="lazy">
+              </a>
+              <figcaption><h3>先分清楚三個領域</h3><p>後端建造 Agent，前端呈現動態 UI，WebMCP 讓外部 Agent 使用網站。</p></figcaption>
+            </figure>
+            <figure class="diagram-card">
+              <a href="images/ai-agent-full-stack-build-order.png" target="_blank" rel="noopener">
+                <img src="images/ai-agent-full-stack-build-order.png" alt="AI Agent 完整全棧建置順序" loading="lazy">
+              </a>
+              <figcaption><h3>後端先行，再接前端</h3><p>從流程、契約、串流、可觀測性一路走到可選的 WebMCP。</p></figcaption>
+            </figure>
+            <figure class="diagram-card">
+              <a href="images/ai-agent-skill-routing.png" target="_blank" rel="noopener">
+                <img src="images/ai-agent-skill-routing.png" alt="AI Agent 技能路由決策樹" loading="lazy">
+              </a>
+              <figcaption><h3>用三個問題選技能</h3><p>先判斷流程的控制者，再決定要用 plain Spring AI、Embabel、json-render 或 WebMCP。</p></figcaption>
+            </figure>
+          </div>
+        </section>
+
+        <section class="skill-section accent-teal" id="embabel">
+          <div class="section-heading">
+            <p class="section-kicker">02 / BACKEND</p>
+            <h2>Embabel + Spring AI</h2>
+            <p>把業務流程拆成型別化、可重規劃、可測試且可觀測的 JVM Agent。</p>
+          </div>
+          <div class="gallery gallery-two">
+            <figure class="diagram-card">
+              <a href="images/embabel-goap-replanning.png" target="_blank" rel="noopener">
+                <img src="images/embabel-goap-replanning.png" alt="Embabel GOAP 型別化流程與安全失敗目標" loading="lazy">
+              </a>
+              <figcaption><h3>GOAP 與安全失敗目標</h3><p>成功路徑失敗時仍有 EscalationTicket，避免 STUCK 或無限重規劃。</p></figcaption>
+            </figure>
+            <figure class="diagram-card">
+              <a href="images/embabel-type-driven-boundaries.png" target="_blank" rel="noopener">
+                <img src="images/embabel-type-driven-boundaries.png" alt="Embabel Agent 註解、Blackboard 與執行邊界" loading="lazy">
+              </a>
+              <figcaption><h3>型別就是路由語言</h3><p>方法參數是前置條件，回傳型別是後置條件；Java、LLM 與工具各守自己的邊界。</p></figcaption>
+            </figure>
+            <figure class="diagram-card">
+              <a href="images/embabel-safety-human-loop.png" target="_blank" rel="noopener">
+                <img src="images/embabel-safety-human-loop.png" alt="Embabel Guardrail、Condition、State 與人機協作流程" loading="lazy">
+              </a>
+              <figcaption><h3>安全閘門與人機協作</h3><p>輸入與輸出 Guardrail、@Condition、@State 和 WaitFor 共同控制風險。</p></figcaption>
+            </figure>
+            <figure class="diagram-card">
+              <a href="images/embabel-verification-version-alignment.png" target="_blank" rel="noopener">
+                <img src="images/embabel-verification-version-alignment.png" alt="Embabel 驗證階梯與版本相容性" loading="lazy">
+              </a>
+              <figcaption><h3>交付前驗證與版本對齊</h3><p>從純 Java Action、LLM Action、Planner 整合到營運稽核，並保持 Boot 與 Embabel 版本線一致。</p></figcaption>
+            </figure>
+          </div>
+        </section>
+
+        <section class="skill-section accent-violet" id="json-render">
+          <div class="section-heading">
+            <p class="section-kicker">03 / FRONTEND</p>
+            <h2>json-render-ui</h2>
+            <p>將自然語言請求轉成可容錯串流、漸進渲染並能持續探索的動態 Dashboard。</p>
+          </div>
+          <div class="gallery gallery-two">
+            <figure class="diagram-card">
+              <a href="images/json-render-pipeline.png" target="_blank" rel="noopener">
+                <img src="images/json-render-pipeline.png" alt="json-render-ui 從自然語言到 Dashboard 的串流流程" loading="lazy">
+              </a>
+              <figcaption><h3>端到端串流渲染</h3><p>POST、SSE、fetch、lenientParse、sanitize 與 Renderer 串成容錯流程。</p></figcaption>
+            </figure>
+            <figure class="diagram-card">
+              <a href="images/json-render-contracts.png" target="_blank" rel="noopener">
+                <img src="images/json-render-contracts.png" alt="json-render flat element tree、catalog 與 registry 契約" loading="lazy">
+              </a>
+              <figcaption><h3>三個核心契約</h3><p>Flat Element Tree、Component Catalog ↔ React Registry，以及三層防線避免規格漂移。</p></figcaption>
+            </figure>
+            <figure class="diagram-card">
+              <a href="images/json-render-deterministic-data.png" target="_blank" rel="noopener">
+                <img src="images/json-render-deterministic-data.png" alt="json-render 資料陣列與 LLM 敘事分工" loading="lazy">
+              </a>
+              <figcaption><h3>資料交給確定性程式</h3><p>LLM 抽 intent 與敘事；rows、chart data、lists 和 rankings 由後端組裝。</p></figcaption>
+            </figure>
+            <figure class="diagram-card">
+              <a href="images/json-render-observability-drilldown.png" target="_blank" rel="noopener">
+                <img src="images/json-render-observability-drilldown.png" alt="json-render 可觀測側欄與 Dashboard drill-down" loading="lazy">
+              </a>
+              <figcaption><h3>觀測與下鑽互動</h3><p>SSE 進度與成本讓 Agent 可見；drillTemplate 讓使用者從表格繼續追問。</p></figcaption>
+            </figure>
+            <figure class="diagram-card">
+              <a href="images/webmcp-generative-ui-lifecycle.png" target="_blank" rel="noopener">
+                <img src="images/webmcp-generative-ui-lifecycle.png" alt="生成式 UI 的固定入口層、元素層與 WebMCP 工具生命週期" loading="lazy">
+              </a>
+              <figcaption><h3>生成式 UI 與 WebMCP 整合</h3><p>Entry layer 與 Element layer 接上 json-render 的 spec lifecycle，讓工具跟著已驗證的畫面更新。</p></figcaption>
+            </figure>
+          </div>
+        </section>
+
+        <section class="skill-section accent-gold" id="webmcp">
+          <div class="section-heading">
+            <p class="section-kicker">04 / AGENT-FACING</p>
+            <h2>WebMCP Development Guide</h2>
+            <p>當人類可操作的頁面完成後，再把頁面能力安全地發佈成外部 Agent 可呼叫的工具。</p>
+          </div>
+          <div class="gallery gallery-two">
+            <figure class="diagram-card">
+              <a href="images/webmcp-boundaries-overview.png" target="_blank" rel="noopener">
+                <img src="images/webmcp-boundaries-overview.png" alt="WebMCP、Direct API 與 MCP 的邊界總覽" loading="lazy">
+              </a>
+              <figcaption><h3>先理解邊界</h3><p>Direct API、WebMCP 與傳統 MCP 的責任不同，先決定誰是工具提供者。</p></figcaption>
+            </figure>
+            <figure class="diagram-card">
+              <a href="images/webmcp-progressive-enhancement.png" target="_blank" rel="noopener">
+                <img src="images/webmcp-progressive-enhancement.png" alt="WebMCP 漸進增強與共用業務路徑" loading="lazy">
+              </a>
+              <figcaption><h3>人類 UI 與 Agent 共用邏輯</h3><p>Feature detection、fallback 與同一條 domain function 讓既有網站逐步增強。</p></figcaption>
+            </figure>
+            <figure class="diagram-card">
+              <a href="images/webmcp-api-selection.png" target="_blank" rel="noopener">
+                <img src="images/webmcp-api-selection.png" alt="WebMCP Declarative 與 Imperative API 選型" loading="lazy">
+              </a>
+              <figcaption><h3>Declarative 或 Imperative</h3><p>表單語意優先用 Declarative；查詢、導航與 SPA 狀態用 Imperative。</p></figcaption>
+            </figure>
+            <figure class="diagram-card">
+              <a href="images/webmcp-contract-security.png" target="_blank" rel="noopener">
+                <img src="images/webmcp-contract-security.png" alt="WebMCP 工具契約與安全邊界" loading="lazy">
+              </a>
+              <figcaption><h3>契約不是安全邊界</h3><p>Schema 只是引導；敏感寫入、權限與資料驗證仍由後端和使用者確認負責。</p></figcaption>
+            </figure>
+            <figure class="diagram-card">
+              <a href="images/webmcp-verification-ladder.png" target="_blank" rel="noopener">
+                <img src="images/webmcp-verification-ladder.png" alt="WebMCP 從函式測試到真實 Agent 的驗證階梯" loading="lazy">
+              </a>
+              <figcaption><h3>從函式到真實 Agent</h3><p>依序驗證註冊生命週期、UI/API、Inspector、Evals 與真實瀏覽器旅程。</p></figcaption>
+            </figure>
+          </div>
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        <div>
+          <p class="eyebrow">AI AGENT DEV GUIDE</p>
+          <p>圖解是獨立的閱讀輔助；技能本體維持可安裝、可攜帶的 Markdown 契約。</p>
+        </div>
+        <a class="back-to-top" href="#top">回到頂端 ↑</a>
+      </footer>
+    </div>
+  </body>
+</html>
