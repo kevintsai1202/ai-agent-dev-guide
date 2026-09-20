@@ -64,7 +64,11 @@ ai-agent-dev-guide/
 
 ## 版本兼容性
 
-- Embabel 最新发布版 **1.5.1**（Maven Central，2026-08-24），构建于 **Spring Boot 4.1.0 + Spring AI 2.0.x + Jackson 3**。
+- Embabel 最新发布版 **1.5.2**（Maven Central，2026-09-16），构建于 **Spring Boot 4.1.0 + Spring AI 2.0.x + Jackson 3**。
 - **Boot 4 自 Embabel 1.5.0 起已支持**。仍在 Spring Boot 3.5.x 的项目请留在 **Embabel 1.0.0** 线（Spring AI 1.1.7）。两条线混用仍会在 context 启动时失败（`HttpHeaders.addAll` 签名变更）。
 - 升 Boot 4 同时要处理：`spring-boot-starter-web` → `spring-boot-starter-webmvc`、Jackson 3（`tools.jackson.*`、`ObjectMapper` 不可变）、Spring AI 2.0 model builder 改名。
+- **System One（TypeSafe Jev）决策加速支持**：本套件全面支持将 TypeSafe Jev System One 模型作为跨领域的 50ms 极速判断节点：
+  - 后端（`embabel-agent-backend`）：语义 `@Condition` 门禁、类型路由器、轻量安全护栏与单次请求并行多题。
+  - 前端生成 UI（`json-render-ui`）：通过 `Choice` 零幻觉选取组件目录、通过 `Score` 评定指标严重等级与动态样式。
+  - WebMCP 工具（`webmcp-development-guide`）：动态工具剪枝（避免 Tool Overload）、执行前安全守门员（BFF 代理保护密钥）。
 - 开工前请从目标项目的 build 文件确认实际版本，勿凭空假设版号。详见 `embabel-agent-backend` 的 Version Compatibility 段落。

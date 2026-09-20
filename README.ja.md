@@ -64,7 +64,11 @@ ai-agent-dev-guide/
 
 ## バージョン互換性
 
-- Embabel の最新リリース版は **1.5.1**（Maven Central、2026-08-24）で、**Spring Boot 4.1.0 + Spring AI 2.0.x + Jackson 3** 上に構築されています。
+- Embabel の最新リリース版は **1.5.2**（Maven Central、2026-09-16）で、**Spring Boot 4.1.0 + Spring AI 2.0.x + Jackson 3** 上に構築されています。
 - **Spring Boot 4 は Embabel 1.5.0 以降サポート済み**。Spring Boot 3.5.x のままのプロジェクトは **Embabel 1.0.0** 系（Spring AI 1.1.7）に留めてください。系統を混在させると従来どおり context 起動時に失敗します（`HttpHeaders.addAll` のシグネチャ変更）。
 - Boot 4 への移行では併せて対応が必要です：`spring-boot-starter-web` → `spring-boot-starter-webmvc`、Jackson 3（`tools.jackson.*`、`ObjectMapper` の不変化）、Spring AI 2.0 のモデルビルダー改名。
+- **System One（TypeSafe Jev）による判断加速**：本スイートは TypeSafe Jev System One モデルを 50ms の高速判断ノードとして全ドメインでサポートしています：
+  - バックエンド（`embabel-agent-backend`）：セマンティック `@Condition` ゲート、型駆動ルーティング、ガードレール、並列評価。
+  - 生成 UI（`json-render-ui`）：`Choice` によるハルシネーションのないコンポーネントカタログ選択、`Score` による指標重要度とスタイルの決定。
+  - WebMCP（`webmcp-development-guide`）：動的ツールプルーニング（Tool Overload 防止）、BFF プロキシ経由の実行前安全ゲートキーパー。
 - 着手前に対象プロジェクトの build ファイルから実際のバージョンを確認してください。バージョン番号を推測しないこと。詳細は `embabel-agent-backend` の Version Compatibility セクションを参照。

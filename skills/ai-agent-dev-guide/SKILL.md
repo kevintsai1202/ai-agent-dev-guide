@@ -13,13 +13,14 @@ The suite splits into three domains:
 - **Frontend** — **`json-render-ui`**: a backend-agnostic, LLM-generates-UI generative rendering frontend. Usable on its own with any backend that meets its Backend Contract.
 - **Agent-facing** — **`webmcp-development-guide`**: exposing your page's capabilities as WebMCP tools so an **external** Agent (ChatGPT Site tools, Chrome 149+) can call them. Note the direction: the first two domains build _your_ agent; this one makes your site a tool provider _for someone else's_. Optional, and additive to either.
 
-Evidence sources: the `learn-embabel` course (backend) plus the `embabel-json-render` POC (frontend). Version baseline (Embabel backend): Spring Boot 4.1.x + Embabel 1.5.1 + Spring AI 2.0.x (**Boot 4 is supported since Embabel 1.5.0**; Boot 3.5.x projects stay on Embabel 1.0.x — see the backend skill for details).
+Evidence sources: the `learn-embabel` course (backend) plus the `embabel-json-render` POC (frontend). Version baseline (Embabel backend): Spring Boot 4.1.x + Embabel 1.5.2 + Spring AI 2.0.x (**Boot 4 is supported since Embabel 1.5.0**; Boot 3.5.x projects stay on Embabel 1.0.x — see the backend skill for details).
 
 ## Routing table
 
 | Your need | Which skill |
 | ---- | ---------- |
 | `@Agent`/`@Action`/`@AchievesGoal`, GOAP planning, Blackboard, type-driven routing (Embabel) | **embabel-agent-backend** |
+| Fast semantic judgment nodes: `@Condition` gates, type-driven router actions, guardrails, multi-question speculative fan-out (TypeSafe Jev System One) | **embabel-agent-backend** |
 | Domain `@Tool`, MCP, Agentic RAG, `@Condition`/SpEL gating (Embabel) | **embabel-agent-backend** |
 | `@State` loops / human-in-the-loop (`WaitFor`), streaming output, cost tracking and budget guardrails (Embabel) | **embabel-agent-backend** |
 | Autonomy `chooseAndRunAgent` / `AgentInvocation`, multi-agent orchestration and fusion, intent parameterization (Embabel) | **embabel-agent-backend** |
@@ -28,9 +29,11 @@ Evidence sources: the `learn-embabel` course (backend) plus the `embabel-json-re
 | Spring Boot / Spring AI wiring, version compatibility, testing, observability and failure handling (Embabel) | **embabel-agent-backend** |
 | A dynamic dashboard for "natural language → backend generates a UI spec → frontend progressive rendering" | **json-render-ui** |
 | json-render flat element-tree spec contract, component catalog ↔ frontend registry reconciliation | **json-render-ui** |
+| Zero-hallucination component catalog selection via `Choice`, metric severity styling via `Score`, drill-down recommendations (Jev System One) | **json-render-ui** |
 | SSE streaming (`fetch` + `ReadableStream`), `lenientParse`/`sanitize` fault-tolerant progressive rendering | **json-render-ui** |
 | Backend step-progress / cost observability panel, click-to-drill-down, catalog maintenance page | **json-render-ui** |
 | Letting an external Agent (ChatGPT Site tools / Chrome 149+) discover and call your page's capabilities; `document.modelContext`, Imperative vs Declarative, tool schemas, Inspector/Evals | **webmcp-development-guide** |
+| Dynamic tool pruning (anti-tool overload), pre-execution gatekeeper via `Noul`, backend BFF proxy (Jev System One) | **webmcp-development-guide** |
 | Exposing an **LLM-generated** dashboard to an external Agent — the tool set has to track a screen that is regenerated every request | **webmcp-development-guide** (`references/generative-ui-integration.md`) + **json-render-ui** |
 
 ## Backend frameworks
@@ -60,7 +63,7 @@ Backend only → use your backend framework skill (currently `embabel-agent-back
 4. **Observability and interaction** (`json-render-ui`): step-progress + cost panel (▼ Embabel: GOAP plan/step), click-to-drill-down, catalog maintenance page.
 5. **Ask about the agent-facing layer** (`webmcp-development-guide`, optional): with a working dashboard in front of the user, ask whether an external Agent should be able to operate it too. Ask here rather than up front — before a screen exists, nobody can judge which capabilities are worth exposing as tools. If yes, start from `references/generative-ui-integration.md`.
 
-> Cross-skill iron rules at a glance (details in the domain skills): **data arrays are always assembled deterministically into the spec by backend code, never produced by the LLM** (which drops items → empty table, breaks the JSON, tampers with numbers); the LLM only touches narrative text. **(Embabel) GOAP plan/action lifecycle events only go through the global listener**, not a per-call listener.
+> Cross-skill iron rules at a glance (details in the domain skills): **data arrays are always assembled deterministically into the spec by backend code, never produced by the LLM** (which drops items → empty table, breaks the JSON, tampers with numbers); the LLM only touches narrative text. **(Embabel) GOAP plan/action lifecycle events only go through the global listener**, not a per-call listener. **System One models (TypeSafe Jev) run strictly server-side — never expose JEV_API_KEY to the browser; WebMCP tools route verification through a backend BFF proxy.**
 
 ## Domain split
 

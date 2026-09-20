@@ -1,6 +1,6 @@
 ---
 name: embabel-agent-backend
-description: "Use when building, reviewing, or refactoring Embabel + Spring AI JVM agent applications, especially Spring Boot 4.1.x (Embabel 1.5.x) or Spring Boot 3.5.x (Embabel 1.0.x) / Java 21 projects that need GOAP planning, @Agent/@Action type-driven flows, Blackboard state, domain @Tool methods, MCP or Agentic RAG integration, prompt testing, observability, production-ready guardrails, @State loops/human-in-the-loop, @Condition boolean gates, Agentic/Progressive tools, streaming output, LLM cost tracking, budget guardrails, MCP server publishing, concurrent execution, the workflow DSL builders (ScatterGather fork-join, Consensus, RepeatUntil/RepeatUntilAcceptable), Agent Skills (SKILL.md packages, EmbeddingSkillSelector), or model provider / BYOK wiring. Note: Embabel 1.5.x (latest 1.5.1, verified 2026-09-10) runs on Spring Boot 4.1.x + Spring AI 2.0.x + Jackson 3; keep the Embabel 1.0.x line for Spring Boot 3.5.x projects."
+description: "Use when building, reviewing, or refactoring Embabel + Spring AI JVM agent applications, especially Spring Boot 4.1.x (Embabel 1.5.x) or Spring Boot 3.5.x (Embabel 1.0.x) / Java 21 projects that need GOAP planning, @Agent/@Action type-driven flows, Blackboard state, domain @Tool methods, MCP or Agentic RAG integration, prompt testing, observability, production-ready guardrails, @State loops/human-in-the-loop, @Condition boolean gates, Agentic/Progressive tools, streaming output, LLM cost tracking, budget guardrails, MCP server publishing, concurrent execution, the workflow DSL builders (ScatterGather fork-join, Consensus, RepeatUntil/RepeatUntilAcceptable), Agent Skills (SKILL.md packages, EmbeddingSkillSelector), or model provider / BYOK wiring. Note: Embabel 1.5.x (latest 1.5.2, verified 2026-09-21) runs on Spring Boot 4.1.x + Spring AI 2.0.x + Jackson 3; keep the Embabel 1.0.x line for Spring Boot 3.5.x projects."
 ---
 
 # Embabel + Spring AI Development
@@ -31,7 +31,8 @@ Two supported lines. Pick the one that matches your Spring Boot generation — d
 
 | Embabel | Released | Spring Boot | Spring AI | Jackson | Kotlin |
 |---|---|---|---|---|---|
-| **1.5.1** (latest) | 2026-08-24 | **4.1.0** | **2.0.x** (2.0.0 GA / 2.0.2) | **3.x** (`tools.jackson.*`) | 2.2.21 |
+| **1.5.2** (latest) | 2026-09-16 | **4.1.0** | **2.0.x** (2.0.0 GA / 2.0.2) | **3.x** (`tools.jackson.*`) | 2.2.21 |
+| 1.5.1 | 2026-08-24 | 4.1.0 | 2.0.x (2.0.0 GA / 2.0.2) | 3.x (`tools.jackson.*`) | 2.2.21 |
 | 1.5.0 | 2026-08-11 | 4.x | 2.0.0 GA | 3.x | 2.2.21 |
 | **1.0.0** (Boot 3 line) | 2026-07-20 | **3.5.14** | **1.1.7** | 2.x (`com.fasterxml.jackson.*`) | 2.x |
 
@@ -40,7 +41,7 @@ Two supported lines. Pick the one that matches your Spring Boot generation — d
 - Java 21 remains the baseline (Spring Boot 4's own minimum is Java 17).
 - Verify before pinning: `https://repo1.maven.org/maven2/com/embabel/agent/embabel-agent-starter/maven-metadata.xml` (`<release>` element), and read the target artifact's POM to confirm the Spring Boot / Spring AI versions it actually drags in.
 
-**Re-verified 2026-09-10: 1.5.1 (2026-08-24) is still the latest release** — no newer tag on GitHub and `<release>` is 1.5.1 for every `com.embabel.agent` artifact. The table above stands.
+**Re-verified 2026-09-21: 1.5.2 (2026-09-16) is the latest release** — verified via Maven Central `maven-metadata.xml`. The table above stands.
 
 **Next-release preview (on `main`, NOT released — do not pin against these).** Useful only for planning:
 
