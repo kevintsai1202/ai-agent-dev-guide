@@ -114,6 +114,7 @@ For the full step-by-step checklist, read `references/development-workflow.md`.
 - Read `references/patterns-and-templates.md` when generating Java records, `@Agent` classes, `application.yml`, Maven snippets, or AI assistant prompts.
 - Read `references/testing-and-troubleshooting.md` when adding tests, reviewing reliability, or debugging a stuck plan.
 - Read `references/conditions-and-guardrails.md` when an action needs boolean preconditions (`@Condition`, SpEL) or when adding input/output validation guardrails to LLM calls.
+- Read `references/system-one-integration.md` when you need high-speed, low-cost judgment nodes (TypeSafe Jev System One) for semantic `@Condition` gates, GOAP type-driven router actions, lightweight `UserInputGuardRail` checks, or Agentic RAG reranking.
 - Read `references/states-and-loops.md` when the workflow has looping, branching, human-in-the-loop (`WaitFor`), or state-machine patterns (`@State`).
 - Read `references/advanced-features.md` when:
   - You need **Embabel Shell** commands for interactive testing and debugging.
